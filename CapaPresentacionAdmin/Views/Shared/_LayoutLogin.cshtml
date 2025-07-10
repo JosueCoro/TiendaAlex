@@ -1,0 +1,43 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Mi aplicación ASP.NET</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    <style>
+        /* Estilos para centrar el contenido en el layout */
+        body {
+            display: flex;
+            justify-content: center; /* Centrado horizontal */
+            align-items: center; /* Centrado vertical */
+            min-height: 100vh; /* Asegura que ocupe el 100% de la altura de la ventana */
+            margin: 0; /* Elimina el margen predeterminado del body */
+            background-color: #f0f2f5; /* Un color de fondo suave para probar */
+        }
+
+        .container.body-content {
+            /* No es necesario un ancho fijo aquí si el card tiene su propio ancho */
+            /* Puedes ajustar el padding si lo necesitas */
+            flex-grow: 1; /* Permite que el contenedor crezca, pero el card dentro se centrará */
+            display: flex; /* Añade display flex para centrar el contenido interno también */
+            justify-content: center; /* Centra horizontalmente el contenido dentro de este div */
+            align-items: center; /* Centra verticalmente el contenido dentro de este div */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container body-content">
+        @RenderBody()
+    </div>
+
+    
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

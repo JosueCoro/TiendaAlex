@@ -141,7 +141,9 @@
                     </svg>
                     <input autocomplete="off" id="logpass" placeholder="Contraseña" class="input-field" name="logpass" type="password">
                 </div>
-                <button href="Home/Index" class="btn" type="submit">Iniciar Sesión</button>
+                @*<button href="@Url.Action("Index", "Home")" class="btn" type="submit">Iniciar Sesión</button>*@
+                <a class="btn" href="@Url.Action("Index", "Home")">Iniciar Sesión</a>
+
             </form>
         </div>
     </div>

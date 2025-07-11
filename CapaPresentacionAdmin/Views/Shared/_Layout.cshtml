@@ -1,40 +1,121 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - Mi aplicación ASP.NET</title>
+    <title>@ViewBag.Title - Tienda Alex</title>
     @Styles.Render("~/Content/css")
+    <link href="~/Content/Site.css" rel="stylesheet" />
+    <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
     @Scripts.Render("~/bundles/modernizr")
 </head>
 <body>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark">
-        <div class="container">
-            @Html.ActionLink("Nombre de la aplicación", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
-            <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Alternar navegación" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li>@Html.ActionLink("Inicio", "Index", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("Acerca de", "About", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("Contacto", "Contact", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                </ul>
-            </div>
+    <div class="sidebar close">
+        <div class="logo-details">
+            <i class='bx bxl-c-plus-plus'></i>
+            <span class="logo_name">Tienda Alex</span>
         </div>
-    </nav>
-    <div class="container body-content">
-        @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year - Mi aplicación ASP.NET</p>
-        </footer>
+        <ul class="nav-links">
+
+            <li>
+                <a href="@Url.Action("Index", "Home")">
+                    <i class='bx bx-grid-alt'></i>
+                    <span class="link_name">Inicio</span>
+                </a>
+                <ul class="sub-menu blank">
+                    <li>
+                        <a class="link_name" href="@Url.Action("Index", "Home")">Inicio</a>
+                    </li>
+                </ul>
+            </li>
+
+            <li>
+                <div class="iocn-link">
+                    <a>
+                        <i class='bx bx-cog'></i>
+                        <span class="link_name">Administración</span>
+                    </a>
+                    <i class='bx bxs-chevron-down arrow'></i>
+                </div>
+                <ul class="sub-menu">
+                    <li><a href="@Url.Action("Usuario", "Administracion")"><i class='bx bx-user'></i> Usuario</a></li>
+                    <li><a href="@Url.Action("Rol", "Administracion")"><i class='bx bx-shield-quarter'></i> Rol</a></li>
+                    <li><a href="@Url.Action("Permiso", "Administracion")"><i class='bx bx-lock-alt'></i> Permisos</a></li>
+                </ul>
+            </li>
+
+            <li>
+                <div class="iocn-link">
+                    <a>
+                        <i class='bx bx-wrench'></i>
+                        <span class="link_name">Mantenimiento</span>
+                    </a>
+                    <i class='bx bxs-chevron-down arrow'></i>
+                </div>
+                <ul class="sub-menu">
+                    <li><a href="@Url.Action("Categoria", "Mantenedor")"><i class='bx bx-category-alt'></i> Categoría</a></li>
+                    <li><a href="@Url.Action("Marca", "Mantenedor")"><i class='bx bx-purchase-tag'></i> Marca</a></li>
+                    <li><a href="@Url.Action("Prenda", "Mantenedor")"><i class='bx bx-tag'></i> Prenda</a></li>
+                </ul>
+            </li>
+
+            <li>
+                <div class="iocn-link">
+                    <a>
+                        <i class='bx bx-cart-alt'></i>
+                        <span class="link_name">Ventas</span>
+                    </a>
+                    <i class='bx bxs-chevron-down arrow'></i>
+                </div>
+                <ul class="sub-menu">
+                    <li><a href="@Url.Action("Cliente", "Comercial")"><i class='bx bx-user-pin'></i> Cliente</a></li>
+                    <li><a href="@Url.Action("Venta", "Comercial")"><i class='bx bx-receipt'></i> Registros de Ventas</a></li>
+                    <li><a href="@Url.Action("Direccion", "Comercial")"><i class='bx bx-map'></i> Registros de Direcciones</a></li>
+                </ul>
+            </li>
+        </ul>
+
+
+        <div class="profile-details">
+            <div class="profile-content">
+                <img src="~/Content/imagenes/profile.png" alt="profileImg" />
+            </div>
+            <div class="name-job">
+                <div class="profile_name">Usuario</div>
+                <div class="job">Rol</div>
+            </div>
+            <i class='bx bx-log-out'></i>
+        </div>
     </div>
+
+    <section class="home-section">
+        <div class="home-content">
+            <i class='bx bx-menu'></i>
+            <span class="text">Tienda Virtual</span>
+        </div>
+        <div class="container mt-4">
+            @RenderBody()
+        </div>
+    </section>
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    <script src="https://unpkg.com/boxicons@2.0.7/dist/boxicons.js"></script>
+    <script>
+        let arrow = document.querySelectorAll(".arrow");
+        for (var i = 0; i < arrow.length; i++) {
+            arrow[i].addEventListener("click", (e) => {
+                let arrowParent = e.target.parentElement.parentElement;
+                arrowParent.classList.toggle("showMenu");
+            });
+        }
+        let sidebar = document.querySelector(".sidebar");
+        let sidebarBtn = document.querySelector(".bx-menu");
+        sidebarBtn.addEventListener("click", () => {
+            sidebar.classList.toggle("close");
+        });
+    </script>
     @RenderSection("scripts", required: false)
 </body>
 </html>

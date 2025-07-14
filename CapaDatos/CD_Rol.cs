@@ -86,10 +86,16 @@ namespace CapaDatos
 
                     conexion.Open();
 
+                    //cmd.ExecuteNonQuery();
+                    //mensaje = cmd.Parameters["@Mensaje"].Value.ToString();
+                    //resultado = Convert.ToInt32(cmd.Parameters["@Resultado"].Value);
+                    //id_autogenerado = Convert.ToInt32(cmd.Parameters["@NuevoIdRol"].Value);
                     cmd.ExecuteNonQuery();
+
                     mensaje = cmd.Parameters["@Mensaje"].Value.ToString();
-                    resultado = Convert.ToInt32(cmd.Parameters["@Resultado"].Value);
-                    id_autogenerado = Convert.ToInt32(cmd.Parameters["@NuevoIdRol"].Value);
+                    resultado = cmd.Parameters["@Resultado"].Value != DBNull.Value ? Convert.ToInt32(cmd.Parameters["@Resultado"].Value) : 0;
+                    id_autogenerado = cmd.Parameters["@NuevoIdRol"].Value != DBNull.Value ? Convert.ToInt32(cmd.Parameters["@NuevoIdRol"].Value) : 0;
+
                 }
             }
             catch (Exception ex)
@@ -120,10 +126,17 @@ namespace CapaDatos
                     cmd.Parameters.Add("@NuevoIdRol", SqlDbType.Int).Direction = ParameterDirection.Output;
                     conexion.Open();
 
+                    //cmd.ExecuteNonQuery();
+                    //mensaje = cmd.Parameters["@Mensaje"].Value.ToString();
+                    //resultado = Convert.ToBoolean(cmd.Parameters["@Resultado"].Value);
+                    //id_autogenerado = Convert.ToInt32(cmd.Parameters["@NuevoIdRol"].Value);
                     cmd.ExecuteNonQuery();
+
                     mensaje = cmd.Parameters["@Mensaje"].Value.ToString();
                     resultado = Convert.ToBoolean(cmd.Parameters["@Resultado"].Value);
-                    id_autogenerado = Convert.ToInt32(cmd.Parameters["@NuevoIdRol"].Value);
+                    //resultado = cmd.Parameters["@Resultado"].Value != DBNull.Value ? Convert.ToBoolean(cmd.Parameters["@Resultado"].Value) : false;
+                    id_autogenerado = cmd.Parameters["@NuevoIdRol"].Value != DBNull.Value ? Convert.ToInt32(cmd.Parameters["@NuevoIdRol"].Value) : 0;
+
                 }
             }
             catch (Exception ex)
@@ -147,7 +160,6 @@ namespace CapaDatos
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Operacion", "DELETE");
                     cmd.Parameters.AddWithValue("@Nombre", DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Descripcion", DBNull.Value);
                     cmd.Parameters.AddWithValue("@Estado", DBNull.Value);
                     cmd.Parameters.AddWithValue("@IdRol", id_rol);
 
@@ -170,12 +182,20 @@ namespace CapaDatos
 
                     conexion.Open();
 
+                    //cmd.ExecuteNonQuery();
+
+                    ////mostrar mensaje
+                    //mensaje = cmd.Parameters["@Mensaje"].Value.ToString();
+
+                    //resultado = Convert.ToBoolean(cmd.Parameters["@Resultado"].Value);
+                    //id_autogenerado = Convert.ToInt32(cmd.Parameters["@NuevoIdRol"].Value);
                     cmd.ExecuteNonQuery();
 
-                    //mostrar mensaje
                     mensaje = cmd.Parameters["@Mensaje"].Value.ToString();
+
                     resultado = Convert.ToBoolean(cmd.Parameters["@Resultado"].Value);
-                    id_autogenerado = Convert.ToInt32(cmd.Parameters["@NuevoIdRol"].Value);
+                    id_autogenerado = cmd.Parameters["@NuevoIdRol"].Value != DBNull.Value ? Convert.ToInt32(cmd.Parameters["@NuevoIdRol"].Value) : 0;
+
                 }
             }
             catch (Exception ex)

@@ -1,0 +1,222 @@
+﻿
+@{
+    ViewBag.Title = "Marca";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Marca</h2>
+<div class="mb-3 mt-4">
+    <button class="btn btn-primary" onclick="abrirModal()">Crear Marca</button>
+</div>
+
+<table class="table table-bordered table-striped" id="tablaMarcas">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<div class="modal fade" id="FormModalMarca" tabindex="-1" aria-labelledby="modalMarcaLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="modalMarcaLabel">Detalle de Marca</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="txtidMarca" value="0" class="d-none" />
+
+                <div class="mb-3">
+                    <label for="txtNombreMarca" class="form-label">Nombre de la Marca</label>
+                    <input type="text" class="form-control" id="txtNombreMarca" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="ddlEstadoMarca" class="form-label">Estado</label>
+                    <select class="form-select" id="ddlEstadoMarca">
+                        <option value="1">Activo</option>
+                        <option value="0">Inactivo</option>
+                    </select>
+                </div>
+
+                <div id="mensajeError" class="alert alert-danger d-none" role="alert"></div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="GuardarMarca()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            cargarMarcas(); 
+        });
+
+        function cargarMarcas() {
+            $.LoadingOverlay("show");
+
+            fetch('@Url.Action("ListarMarcas", "Mantenedor")') 
+                .then(res => {
+                    if (!res.ok) { 
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
+                .then(res => {
+                    const cuerpo = document.querySelector("#tablaMarcas tbody");
+                    cuerpo.innerHTML = ""; 
+
+                    if (res.data) { 
+                        res.data.forEach(marca => {
+                            const fila = document.createElement("tr");
+
+                            fila.setAttribute("data-id", marca.id_marca);
+
+                            fila.innerHTML = `
+                                <td>${marca.nombre}</td>
+                                <td>${marca.estado ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>'}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm me-2" onclick='abrirModal(${JSON.stringify(marca)})'>Editar</button>
+                                    <button class="btn btn-danger btn-sm" onclick='eliminarMarca(${marca.id_marca})'>Eliminar</button>
+                                </td>
+                            `;
+                            cuerpo.appendChild(fila);
+                        });
+                    } else {
+                        mostrarError("No se encontraron datos de marcas.");
+                    }
+                })
+                .catch(err => {
+                    mostrarError("Error al cargar marcas: " + err.message); 
+                    console.error("Error en cargarMarcas:", err);
+                })
+                .finally(() => $.LoadingOverlay("hide"));
+        }
+
+        function GuardarMarca() { 
+            const id = parseInt(document.getElementById("txtidMarca").value); 
+            const nombre = document.getElementById("txtNombreMarca").value.trim(); 
+            const estado = document.getElementById("ddlEstadoMarca").value === "1"; 
+
+            if (nombre === "") {
+                mostrarError("Debe ingresar un nombre para la marca.");
+                return;
+            }
+
+            const data = {
+                id_marca: id,
+                nombre: nombre,
+                estado: estado
+            };
+
+            $.LoadingOverlay("show");
+
+            fetch('@Url.Action("GuardarMarca", "Mantenedor")', { 
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ objeto: data })
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(res => {
+                if (!res.resultado) {
+                    mostrarError(res.mensaje || "No se pudo guardar la marca.");
+                } else {
+                    bootstrap.Modal.getInstance(document.getElementById("FormModalMarca")).hide();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: res.mensaje || (id === 0 ? "Marca creada correctamente" : "Marca actualizada correctamente"), 
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    cargarMarcas(); 
+                }
+            })
+            .catch(err => {
+                mostrarError("Error inesperado al guardar la marca: " + err.message); 
+                console.error("Error en GuardarMarca:", err);
+            })
+            .finally(() => $.LoadingOverlay("hide"));
+        }
+
+        function abrirModal(marca = null) { 
+            document.getElementById("txtidMarca").value = marca?.id_marca || 0; 
+            document.getElementById("txtNombreMarca").value = marca?.nombre || "";
+            document.getElementById("ddlEstadoMarca").value = marca?.estado ? "1" : "0";
+
+            const modal = new bootstrap.Modal(document.getElementById("FormModalMarca"));
+            modal.show();
+        }
+
+        function eliminarMarca(id) { 
+            Swal.fire({
+                title: '¿Está seguro de eliminar esta marca?', 
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.LoadingOverlay("show");
+
+                    fetch('@Url.Action("EliminarMarca", "Mantenedor")', {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id: id })
+                    })
+                    .then(res => {
+                        if (!res.ok) {
+                            throw new Error(`HTTP error! status: ${res.status}`);
+                        }
+                        return res.json();
+                    })
+                    .then(res => {
+                        if (res.resultado) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Marca eliminada correctamente',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            cargarMarcas(); 
+                        } else {
+                            mostrarError(res.mensaje || "No se pudo eliminar la marca."); 
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error al eliminar marca:", err); 
+                        mostrarError("Error inesperado al eliminar la marca: " + err.message);
+                    })
+                    .finally(() => $.LoadingOverlay("hide"));
+                }
+            });
+        }
+
+        function mostrarError(msg) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: msg
+            });
+        }
+    </script>
+}

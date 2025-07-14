@@ -11,7 +11,6 @@
 <table class="table table-bordered table-striped" id="tablaRoles">
     <thead>
         <tr>
-            <th>ID</th>
             <th>Nombre</th>
             <th>Estado</th>
             <th>Acciones</th>
@@ -29,7 +28,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <input type="hidden" id="txtid" value="0" />
+                <input type="text" id="txtid" value="0" />
 
                 <div class="mb-3">
                     <label for="txtNombre" class="form-label">Nombre del Rol</label>
@@ -56,12 +55,15 @@
 </div>
 
 @section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
     <script>
     document.addEventListener("DOMContentLoaded", function () {
         cargarRoles();
     });
-
     function cargarRoles() {
+        $.LoadingOverlay("show");
+
         fetch('@Url.Action("ListarRoles", "Administracion")')
             .then(res => res.json())
             .then(res => {
@@ -71,29 +73,24 @@
                 res.data.forEach(rol => {
                     const fila = document.createElement("tr");
 
+                    fila.setAttribute("data-id", rol.id_rol);
+
                     fila.innerHTML = `
-                        <td>${rol.id_rol}</td>
                         <td>${rol.nombre}</td>
                         <td>${rol.estado ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>'}</td>
                         <td>
                             <button class="btn btn-warning btn-sm me-2" onclick='abrirModal(${JSON.stringify(rol)})'>Editar</button>
-                            <button class="btn btn-danger btn-sm" onclick='inactivarRol(${rol.id_rol})'>Inactivar</button>
+                            <button class="btn btn-danger btn-sm" onclick='inactivarRol(${rol.id_rol})'>Eliminar</button>
                         </td>
                     `;
                     cuerpo.appendChild(fila);
                 });
             })
-            .catch(err => console.error("Error al cargar roles:", err));
-    }
-
-    function abrirModal(rol = null) {
-        document.getElementById("txtid").value = rol?.id_rol || 0;
-        document.getElementById("txtNombre").value = rol?.nombre || "";
-        document.getElementById("cdactivo").value = rol?.estado ? "1" : "0";
-        document.getElementById("mensajeError").classList.add("d-none");
-
-        const modal = new bootstrap.Modal(document.getElementById("FormModal1"));
-        modal.show();
+            .catch(err => {
+                mostrarError("Error al cargar roles.");
+                console.error(err);
+            })
+            .finally(() => $.LoadingOverlay("hide"));
     }
 
     function Guardar() {
@@ -101,11 +98,18 @@
         const nombre = document.getElementById("txtNombre").value.trim();
         const estado = document.getElementById("cdactivo").value === "1";
 
+        if (nombre === "") {
+            mostrarError("Debe ingresar un nombre.");
+            return;
+        }
+
         const data = {
             id_rol: id,
             nombre: nombre,
             estado: estado
         };
+
+        $.LoadingOverlay("show");
 
         fetch('@Url.Action("GuardarRol", "Administracion")', {
             method: "POST",
@@ -114,45 +118,86 @@
         })
         .then(res => res.json())
         .then(res => {
-            if (res.resultado === 0 || res.resultado === false) {
-                mostrarError(res.mensaje || "No se pudo guardar");
+            if (!res.resultado) {
+                mostrarError(res.mensaje || "No se pudo guardar.");
             } else {
                 bootstrap.Modal.getInstance(document.getElementById("FormModal1")).hide();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: res.mensaje || (id === 0 ? "Rol creado correctamente" : "Rol actualizado correctamente"),
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
                 cargarRoles();
             }
         })
         .catch(err => {
-            mostrarError("Error inesperado");
+            mostrarError("Error inesperado al guardar.");
             console.error(err);
-        });
+        })
+        .finally(() => $.LoadingOverlay("hide"));
+    }
+
+    function abrirModal(rol = null) {
+        document.getElementById("txtid").value = rol?.id_rol || 0;
+        document.getElementById("txtNombre").value = rol?.nombre || "";
+        document.getElementById("cdactivo").value = rol?.estado ? "1" : "0";
+
+        const modal = new bootstrap.Modal(document.getElementById("FormModal1"));
+        modal.show();
     }
 
     function inactivarRol(id) {
-        if (!confirm("¿Está seguro de inactivar este rol?")) return;
+        Swal.fire({
+            title: '¿Está seguro de eliminar este rol?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.LoadingOverlay("show");
 
-        fetch('@Url.Action("EliminarRol", "Administracion")', {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: id })
-        })
-        .then(res => res.json())
-        .then(res => {
-            if (res.resultado) {
-                cargarRoles();
-            } else {
-                alert(res.mensaje || "No se pudo inactivar el rol");
+                fetch('@Url.Action("EliminarRol", "Administracion")', {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: id })
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.resultado) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Rol eliminado correctamente',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        cargarRoles();
+                    } else {
+                        mostrarError(res.mensaje || "No se pudo eliminar el rol.");
+                    }
+                })
+                .catch(err => {
+                    console.error("Error al eliminar:", err);
+                    mostrarError("Error inesperado al eliminar el rol.");
+                })
+                .finally(() => $.LoadingOverlay("hide"));
             }
-        })
-        .catch(err => {
-            console.error("Error al inactivar el rol:", err);
-            alert("Error inesperado al inactivar el rol.");
         });
     }
 
     function mostrarError(msg) {
-        const mensaje = document.getElementById("mensajeError");
-        mensaje.textContent = msg;
-        mensaje.classList.remove("d-none");
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: msg
+        });
     }
+
     </script>
 }

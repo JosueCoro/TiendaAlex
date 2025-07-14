@@ -1,39 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Remoting;
 using System.Text;
 using System.Threading.Tasks;
 using CapaDatos;
 using CapaEntidad;
 
+
 namespace CapaNegocio
 {
-    public class CN_Rol
+    public class CN_Marca
     {
-        private CD_Rol rol = new CD_Rol();
+        // Lista todas las marcas
 
-        // Lista todos los roles
-        public List<Rol> Listar()
+        private CD_Marca marca = new CD_Marca();
+        public List<Marca> Listar()
         {
-            return rol.ListarRoles();
+            return marca.ListarMarcas();
         }
 
-        // Agrega un nuevo rol
-        public int Registrar(Rol obj, out string Mensaje)
+        // Agrega una nueva marca
+        public int Registrar(Marca obj, out string Mensaje)
         {
             Mensaje = string.Empty;
             if (string.IsNullOrEmpty(obj.nombre) || string.IsNullOrWhiteSpace(obj.nombre))
             {
-                Mensaje = "El nombre del rol no puede ser vacio";
+                Mensaje = "El nombre de la marca no puede ser vacio";
             }
             else if (obj.nombre.Length > 150)
             {
-                Mensaje = "El nombre del rol no puede tener mas de 150 caracteres";
+                Mensaje = "El nombre de la marca no puede tener mas de 150 caracteres";
             }
             if (string.IsNullOrEmpty(Mensaje))
             {
-                return rol.Registrar(obj, out Mensaje);
+                return marca.Registrar(obj, out Mensaje);
             }
             else
             {
@@ -41,20 +41,20 @@ namespace CapaNegocio
             }
         }
 
-        public bool Editar(Rol obj, out string Mensaje)
-        {
+
+        public bool Editar(Marca obj, out string Mensaje) { 
             Mensaje = string.Empty;
             if (string.IsNullOrEmpty(obj.nombre) || string.IsNullOrWhiteSpace(obj.nombre))
             {
-                Mensaje = "El nombre del rol no puede ser vacio";
+                Mensaje = "El nombre de la marca no puede ser vacio";
             }
             else if (obj.nombre.Length > 150)
             {
-                Mensaje = "El nombre del rol no puede tener mas de 150 caracteres";
+                Mensaje = "El nombre de la marca no puede tener mas de 150 caracteres";
             }
             if (string.IsNullOrEmpty(Mensaje))
             {
-                return rol.Editar(obj, out Mensaje);
+                return marca.Editar(obj, out Mensaje);
             }
             else
             {
@@ -62,17 +62,16 @@ namespace CapaNegocio
             }
         }
 
-        public bool Eliminar(int id_rol, out string Mensaje)
+
+        public bool Eliminar(int id_marca, out string Mensaje)
         {
             Mensaje = string.Empty;
-
-            bool eliminado = rol.Eliminar(id_rol, out Mensaje);
+            bool eliminado = marca.Eliminar(id_marca, out Mensaje);
             if (!eliminado)
             {
-                Mensaje = "El rol se encuentra relacionado a un usuario. No se puede eliminar.";
+                Mensaje = "No se pudo eliminar la marca. " + Mensaje;
             }
             return eliminado;
         }
-
     }
 }

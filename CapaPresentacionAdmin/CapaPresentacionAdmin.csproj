@@ -123,6 +123,7 @@
     <Compile Include="Controllers\AccesoController.cs" />
     <Compile Include="Controllers\AdministracionController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\MantenedorController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -185,6 +186,9 @@
     <Content Include="Views\Shared\_LayoutLogin.cshtml" />
     <Content Include="Views\Administracion\Usuario.cshtml" />
     <Content Include="Views\Administracion\Rol.cshtml" />
+    <Content Include="Views\Mantenedor\Marca.cshtml" />
+    <Content Include="Views\Mantenedor\Categoria.cshtml" />
+    <Content Include="Views\Mantenedor\Prenda.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

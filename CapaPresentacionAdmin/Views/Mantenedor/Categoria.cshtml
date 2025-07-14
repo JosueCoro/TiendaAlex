@@ -1,0 +1,240 @@
+﻿
+@{
+    ViewBag.Title = "Categoria";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Categoria</h2>
+<div class="mb-3 mt-4">
+    <button class="btn btn-primary" onclick="abrirModalCategoria()">Crear Categoría</button>
+</div>
+
+<table class="table table-bordered table-striped" id="tablaCategorias">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<!-- Modal para Categorías -->
+<div class="modal fade" id="FormModalCategoria" tabindex="-1" aria-labelledby="modalCategoriaLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="modalCategoriaLabel">Detalle de Categoría</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Input oculto para el ID de la categoría -->
+                <input type="text" id="txtidCategoria" value="0" class="d-none" />
+
+                <div class="mb-3">
+                    <label for="txtNombreCategoria" class="form-label">Nombre de la Categoría</label>
+                    <input type="text" class="form-control" id="txtNombreCategoria" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="ddlEstadoCategoria" class="form-label">Estado</label>
+                    <select class="form-select" id="ddlEstadoCategoria">
+                        <option value="1">Activo</option>
+                        <option value="0">Inactivo</option>
+                    </select>
+                </div>
+
+                <!-- Mensaje de error dentro del modal -->
+                <div id="mensajeErrorModal" class="alert alert-danger d-none" role="alert"></div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" onclick="GuardarCategoria()">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            cargarCategorias(); // Carga las categorías al cargar la página
+        });
+
+        function cargarCategorias() {
+            $.LoadingOverlay("show"); // Muestra el overlay de carga
+
+            fetch('@Url.Action("ListarCategorias", "Mantenedor")') // Llama a la acción del controlador
+                .then(res => {
+                    if (!res.ok) { // Verifica si la respuesta HTTP fue exitosa
+                        throw new Error(`Error HTTP! estado: ${res.status}`);
+                    }
+                    return res.json(); // Parsea la respuesta JSON
+                })
+                .then(res => {
+                    const cuerpo = document.querySelector("#tablaCategorias tbody");
+                    cuerpo.innerHTML = ""; // Limpia el cuerpo de la tabla
+
+                    if (res.data) { // Asegura que hay datos para iterar
+                        res.data.forEach(categoria => {
+                            const fila = document.createElement("tr");
+                            fila.setAttribute("data-id", categoria.id_categoria); // Guarda el ID en el atributo data
+
+                            fila.innerHTML = `
+                                <td>${categoria.nombre}</td>
+                                <td>${categoria.estado ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>'}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm me-2" onclick='abrirModalCategoria(${JSON.stringify(categoria)})'>Editar</button>
+                                    <button class="btn btn-danger btn-sm" onclick='eliminarCategoria(${categoria.id_categoria})'>Eliminar</button>
+                                </td>
+                            `;
+                            cuerpo.appendChild(fila); // Añade la fila a la tabla
+                        });
+                    } else {
+                        mostrarAlertaError("No se encontraron datos de categorías."); // Muestra error si no hay datos
+                    }
+                })
+                .catch(err => {
+                    mostrarAlertaError("Error al cargar categorías: " + err.message); // Muestra error de carga
+                    console.error("Error en cargarCategorias:", err);
+                })
+                .finally(() => $.LoadingOverlay("hide")); // Oculta el overlay al finalizar
+        }
+
+        function GuardarCategoria() {
+            // Oculta cualquier mensaje de error previo en el modal
+            document.getElementById("mensajeErrorModal").classList.add("d-none");
+
+            const id = parseInt(document.getElementById("txtidCategoria").value);
+            const nombre = document.getElementById("txtNombreCategoria").value.trim();
+            const estado = document.getElementById("ddlEstadoCategoria").value === "1";
+
+            // Validación simple del lado del cliente
+            if (nombre === "") {
+                mostrarAlertaError("Debe ingresar un nombre para la categoría.");
+                return;
+            }
+
+            const data = {
+                id_categoria: id,
+                nombre: nombre,
+                estado: estado
+            };
+
+            $.LoadingOverlay("show"); // Muestra el overlay de carga
+
+            fetch('@Url.Action("GuardarCategoria", "Mantenedor")', { // Llama a la acción del controlador
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ objeto: data }) // Envía el objeto como JSON
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`Error HTTP! estado: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(res => {
+                if (!res.resultado) {
+                    // Muestra el mensaje de error del servidor en el modal
+                    document.getElementById("mensajeErrorModal").innerText = res.mensaje || "No se pudo guardar la categoría.";
+                    document.getElementById("mensajeErrorModal").classList.remove("d-none");
+                } else {
+                    // Cierra el modal de Bootstrap
+                    bootstrap.Modal.getInstance(document.getElementById("FormModalCategoria")).hide();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: res.mensaje || (id === 0 ? "Categoría creada correctamente" : "Categoría actualizada correctamente"),
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    cargarCategorias(); // Recarga la tabla de categorías
+                }
+            })
+            .catch(err => {
+                mostrarAlertaError("Error inesperado al guardar la categoría: " + err.message);
+                console.error("Error en GuardarCategoria:", err);
+            })
+            .finally(() => $.LoadingOverlay("hide")); // Oculta el overlay al finalizar
+        }
+
+        function abrirModalCategoria(categoria = null) {
+            // Limpia y oculta cualquier mensaje de error previo en el modal
+            document.getElementById("mensajeErrorModal").classList.add("d-none");
+            document.getElementById("mensajeErrorModal").innerText = "";
+
+            // Rellena los campos del modal si se está editando
+            document.getElementById("txtidCategoria").value = categoria?.id_categoria || 0;
+            document.getElementById("txtNombreCategoria").value = categoria?.nombre || "";
+            document.getElementById("ddlEstadoCategoria").value = categoria?.estado ? "1" : "0";
+
+            // Muestra el modal
+            const modal = new bootstrap.Modal(document.getElementById("FormModalCategoria"));
+            modal.show();
+        }
+
+        function eliminarCategoria(id) {
+            Swal.fire({
+                title: '¿Está seguro de eliminar esta categoría?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.LoadingOverlay("show"); // Muestra el overlay de carga
+
+                    fetch('@Url.Action("EliminarCategoria", "Mantenedor")', { // Llama a la acción del controlador
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id: id }) // Envía el ID de la categoría
+                    })
+                    .then(res => {
+                        if (!res.ok) {
+                            throw new Error(`Error HTTP! estado: ${res.status}`);
+                        }
+                        return res.json();
+                    })
+                    .then(res => {
+                        if (res.resultado) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Categoría eliminada correctamente',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            cargarCategorias(); // Recarga la tabla de categorías
+                        } else {
+                            mostrarAlertaError(res.mensaje || "No se pudo eliminar la categoría."); // Muestra mensaje de error
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error al eliminar categoría:", err);
+                        mostrarAlertaError("Error inesperado al eliminar la categoría: " + err.message);
+                    })
+                    .finally(() => $.LoadingOverlay("hide")); // Oculta el overlay al finalizar
+                }
+            });
+        }
+
+        // Función auxiliar para mostrar errores con SweetAlert2
+        function mostrarAlertaError(msg) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: msg
+            });
+        }
+    </script>
+}
+
+
